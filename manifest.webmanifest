@@ -1,0 +1,25 @@
+{
+  "name": "World War — Global Domination",
+  "short_name": "World War",
+  "description": "Game strategi perang dunia berbasis negara dan provinsi.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#071321",
+  "theme_color": "#0b100d",
+  "icons": [
+    {
+      "src": "./world-war-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./world-war-icon.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

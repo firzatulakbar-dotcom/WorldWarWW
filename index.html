@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b100d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="World War">
+  <meta name="description" content="World War: Global Domination — game strategi perang dunia berbasis peta dan provinsi.">
+  <link rel="icon" type="image/webp" href="world-war-icon.webp">
+  <link rel="apple-touch-icon" href="world-war-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta property="og:image" content="world-war-icon.webp">
+  <title>World War — Global Domination</title>
+  <link rel="stylesheet" href="style.css?v=3.9.0">
+</head>
+<body>
+  <main class="game-shell" id="gameShell">
+    <div class="map-backdrop" aria-hidden="true"></div>
+    <canvas id="worldMap" aria-label="Peta dunia. Ketuk negara atau provinsi untuk memilihnya; geser satu jari untuk menggerakkan peta dan gunakan dua jari untuk zoom."></canvas>
+
+    <section id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Memuat game World War">
+      <div class="loading-card">
+        <div class="loading-emblem-wrap">
+          <div class="loading-orbit orbit-one"></div>
+          <div class="loading-orbit orbit-two"></div>
+          <img class="loading-emblem" src="world-war-icon.webp" alt="World War">
+        </div>
+        <p class="loading-kicker">GLOBAL COMMAND SYSTEM</p>
+        <h1>WORLD <span>WAR</span></h1>
+        <p class="loading-caption" id="loadingTitle">Menyiapkan medan perang dunia…</p>
+        <div class="loading-progress-track" aria-hidden="true"><span id="loadingProgressBar"></span></div>
+        <div class="loading-progress-meta"><strong id="loadingPercent">0%</strong><span id="loadingBytes">Menghubungkan ke server peta</span></div>
+        <div class="loading-steps">
+          <div class="loading-step" id="loadingStepCountries"><i></i><span>Peta negara</span></div>
+          <div class="loading-step" id="loadingStepProvinces"><i></i><span>Database provinsi</span></div>
+          <div class="loading-step" id="loadingStepRegions"><i></i><span>Menyiapkan wilayah</span></div>
+        </div>
+        <p class="loading-footnote">Pemuatan pertama memerlukan internet. Setelah tersimpan, browser dapat memakai cache pada kunjungan berikutnya.</p>
+        <div id="loadingError" class="loading-error" hidden></div>
+        <button id="retryLoadBtn" class="loading-retry" type="button" hidden>↻ COBA LAGI</button>
+      </div>
+    </section>
+
+    <header class="top-hud">
+      <div class="brand-block">
+        <div class="brand-mark"><img src="world-war-icon.webp" alt="World War game icon"></div>
+        <div class="brand-copy">
+          <strong>WORLD WAR</strong>
+          <small id="mapStatus">Memuat peta dunia…</small>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><small>NEGARA</small><strong id="myCountry">Belum dipilih</strong></div>
+        <div class="stat"><small>PRESIDEN</small><strong id="myPresident">Belum diisi</strong></div>
+        <div class="stat"><small>DOLAR AS</small><strong id="gold">$0</strong></div>
+        <div class="stat"><small>MILITER NASIONAL</small><strong id="army">0</strong></div>
+        <div class="stat"><small>PROVINSI</small><strong id="provinceCount">0</strong></div>
+        <div class="stat"><small>RANK</small><strong id="rank">—</strong></div>
+      </div>
+
+      <div class="top-actions">
+        <button id="territoryBtn" class="hud-button" type="button" title="Daftar provinsi">▤ <span>Wilayah</span></button>
+        <button id="rankingBtn" class="hud-button" type="button" title="Peringkat dunia">🏆 <span>Rank</span></button>
+        <button id="newsBtn" class="hud-button" type="button" title="Laporan dalam game">▣ <span>Laporan</span></button>
+        <button id="newGameBtn" class="hud-button" type="button" title="Game baru">↻ <span>Baru</span></button>
+        <button id="helpBtn" class="hud-button" type="button" title="Cara bermain">? <span>Bantuan</span></button>
+        <button id="installAppBtn" class="hud-button install-button" type="button" title="Pasang di HP" aria-label="Pasang game" hidden>⬇ <span>Pasang</span></button>
+        <button id="fullscreenBtn" class="hud-button square" type="button" title="Layar penuh" aria-label="Layar penuh">⛶</button>
+      </div>
+      <div class="simulation-time" aria-label="Kontrol waktu simulasi">
+        <span class="year-label">TAHUN <b id="gameYear">2026</b></span>
+        <button class="speed-button active" type="button" data-speed="1">×1</button>
+        <button class="speed-button" type="button" data-speed="2">×2</button>
+        <button class="speed-button" type="button" data-speed="4">×4</button>
+      </div>
+    </header>
+
+    <div class="map-tools" aria-label="Kontrol peta">
+      <button id="zoomIn" type="button" title="Perbesar sedikit" aria-label="Perbesar">＋</button>
+      <output id="zoomReadout" class="zoom-readout" for="zoomSlider">100%</output>
+      <input id="zoomSlider" class="zoom-slider" type="range" min="85" max="1400" step="5" value="100" aria-label="Atur tingkat zoom" title="Geser untuk zoom detail">
+      <button id="zoomOut" type="button" title="Perkecil sedikit" aria-label="Perkecil">－</button>
+      <button id="zoomReset" type="button" title="Reset tampilan" aria-label="Reset zoom">⌖</button>
+    </div>
+
+    <div class="map-legend">
+      <span><i class="legend-neutral"></i>Netral</span>
+      <span><i class="legend-player"></i>Wilayahmu</span>
+      <span><i class="legend-enemy"></i>Musuh</span>
+      <span><i class="legend-route"></i>Serangan</span>
+      <span><i class="legend-capital">♛</i>Ibu kota</span>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- Semua perintah muncul di kartu kontekstual setelah provinsi/negara diklik. -->
+    <section id="contextCard" class="context-card" role="dialog" aria-label="Panel wilayah" hidden>
+      <div id="contextContent"></div>
+    </section>
+
+    <section id="toolPanel" class="tool-panel" role="dialog" aria-label="Panel informasi game" hidden>
+      <div id="toolPanelContent"></div>
+    </section>
+
+    <section id="helpCard" class="help-card" hidden>
+      <button class="card-close" data-action="close-help" type="button" aria-label="Tutup">×</button>
+      <h2>Cara bermain</h2>
+      <div class="help-grid">
+        <p><b>1. Pilih negara</b><br>Ketuk negara di peta, isi nama presiden, lalu pilih “Mulai”.</p>
+        <p><b>2. Pilih provinsi asal</b><br>Ketuk provinsi milikmu untuk membuka komando.</p>
+        <p><b>3. Invasi bertahap</b><br>Ketuk provinsi lawan, atur jumlah unit, lalu kirim.</p>
+        <p><b>4. Bangun wilayah</b><br>Ketuk provinsi milikmu untuk meningkatkan kota, industri, dan pertahanan. Unit militer dikelola sebagai kekuatan nasional.</p>
+        <p><b>5. Diplomasi</b><br>Ketuk provinsi negara lain untuk menawarkan kerja sama ekonomi, pakta non-agresi, aliansi pertahanan, atau perdamaian. Semua negara memulai dalam keadaan damai.</p>
+        <p><b>6. Waktu simulasi</b><br>Tahun dimulai 2026. Gunakan ×1, ×2, atau ×4 untuk mempercepat ekonomi dan perkembangan dunia.</p>
+        <p><b>7. Peringkat & wilayah</b><br>Buka Rank untuk melihat kekuatan militer dan ekonomi semua negara. Buka Wilayah untuk melihat provinsi asal dan hasil invasi.</p>
+      </div>
+      <p class="help-foot">Darat merebut wilayah bertetangga. Pesawat dapat mengangkut pasukan ke negara mana pun di dunia. Armada dapat melakukan invasi lintas laut. Setiap provinsi harus ditaklukkan satu per satu.</p>
+    </section>
+
+    <footer class="map-footer">
+      <span>Semua negara aktif · Unit militer nasional · Semua notifikasi dan konfirmasi berlangsung di dalam game</span>
+      <span>Mahkota = lokasi ibu kota negara · Data wilayah: Natural Earth</span>
+    </footer>
+  </main>
+  <script src="script.js?v=3.9.3" defer></script>
+</body>
+</html>
